@@ -1,0 +1,40 @@
+from bs4 import BeautifulSoup
+import requests, string, re
+from Song_Titles import *
+
+base_url = "http://genius.com/J-cole-"
+
+full_urls = []
+for x in song_list:
+    y = base_url + x
+    full_urls.append(y)
+word_dict = {}    
+
+
+for url in full_urls:
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    song_artist = soup.find("a",{"ng-bind":"song.primary_artist.name"})
+    song_Artist = str(song_artist.get_text())
+    song_Artist = song_Artist.lower()
+    count = 0
+    for line in soup.p.get_text().splitlines():
+        for x in line.split():
+                x = x.lower()
+                exclude = set(string.punctuation)
+                s = ''.join(ch for ch in x if ch not in exclude)
+                if s == song_Artist:
+                    pass
+                elif s == "chorus" or s == "prechorus" or s == "verse" or s == "postchorus":
+                    pass
+                elif s not in word_dict:
+                    word_dict[s] = 1
+                else:
+                    word_dict[s] += 1          
+    d = sorted(word_dict.items(), key=lambda x: x[1])
+
+print "Word Counts: "
+print 
+for x in d[::-1]:
+    print x[0] + ": " + str(x[1])
+    
