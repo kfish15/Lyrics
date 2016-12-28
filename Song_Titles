@@ -1,0 +1,33 @@
+"""    
+If you are parsing a full albums lyrics (rather than a single song) then this is used to get the name of each song and its corresponding URl on
+the website, and add it to the list "song_list"
+
+Some manual edits may need to be made to remove 
+links to things that aren't songs, like booklets, album art, etc.
+             
+"""
+
+
+
+
+from bs4 import BeautifulSoup
+import requests
+
+# url = """""""Enter URL to album page here""""""""""
+# For example:
+url = "http://genius.com/albums/J-cole/4-your-eyez-only"
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+
+
+song = soup.find_all("span",{"class":"song_title"})
+
+song_list = []
+for x in song[:-3]: 
+    x = x.string
+    x = str(x)
+    x = x.lower()
+    x = x.replace(" ","-")
+    x += "-lyrics"
+    song_list.append(x)
+    
