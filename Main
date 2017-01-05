@@ -1,40 +1,67 @@
 from bs4 import BeautifulSoup
-import requests, string, re
-from Song_Titles import *
+import requests
+import string
 
+url = "http://genius.com/albums/J-cole/4-your-eyez-only"
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+song = soup.find_all("span",{"class":"song_title"})
+song_list = []
+
+for x in song[:-3]: 
+    x = x.string
+    x = str(x)
+    x = x.translate(None, string.punctuation)
+    x = x.lower()
+    x = x.replace(" ","-")
+    x += "-lyrics"
+    song_list.append(x)
+    
 base_url = "http://genius.com/J-cole-"
-
 full_urls = []
 for x in song_list:
     y = base_url + x
     full_urls.append(y)
-word_dict = {}    
+word_dict = {}  
+
+
+song_artist = soup.find("a",{"class":"artist"}).get_text()
+song_artist_check = song_artist.lower()  
+
+album_title = soup.find("h1",{"class":"album_name"}).find(text=True).strip()
+album_year = soup.find("span",{"class":"release_year"}).get_text().strip()
+
 
 
 for url in full_urls:
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
-    song_artist = soup.find("a",{"ng-bind":"song.primary_artist.name"})
-    song_Artist = str(song_artist.get_text())
-    song_Artist = song_Artist.lower()
     count = 0
     for line in soup.p.get_text().splitlines():
         for x in line.split():
                 x = x.lower()
                 exclude = set(string.punctuation)
                 s = ''.join(ch for ch in x if ch not in exclude)
-                if s == song_Artist:
+                if s == song_artist_check:
                     pass
                 elif s == "chorus" or s == "prechorus" or s == "verse" or s == "postchorus":
                     pass
                 elif s not in word_dict:
                     word_dict[s] = 1
                 else:
-                    word_dict[s] += 1          
-    d = sorted(word_dict.items(), key=lambda x: x[1])
+                    word_dict[s] += 1      
 
+
+d = sorted(word_dict.items(), key=lambda x: x[1])
+
+
+
+
+print 'Album Title: {} {}'.format(album_title, album_year)
+print "Song Artist: " + str(song_artist.title())
+print 
 print "Word Counts: "
+print "----------------------------------------"
 print 
 for x in d[::-1]:
     print x[0] + ": " + str(x[1])
-    
