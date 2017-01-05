@@ -1,0 +1,50 @@
+from bs4 import BeautifulSoup
+import requests
+import string
+
+url = "http://genius.com/Sia-the-greatest-lyrics"
+
+
+response = requests.get(url)
+
+soup = BeautifulSoup(response.content, "html.parser")
+song_title = soup.find("h1",{"class":"song_header-primary_info-title"})
+song_artist = soup.find("a",{"ng-bind":"song.primary_artist.name"})
+song_artist = str(song_artist.get_text())
+song_artist_check = song_artist.lower()
+Song_Title = song_title.get_text()
+p = soup.find_all("p")
+count = 0
+word_dict = {}
+
+
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+count = 0
+for line in soup.p.get_text().splitlines():
+    for x in line.split():
+            x = x.lower()
+            exclude = set(string.punctuation)
+            s = ''.join(ch for ch in x if ch not in exclude)
+            if s == song_artist_check:
+                pass
+            elif s == "chorus" or s == "prechorus" or s == "verse" or s == "postchorus":
+                pass
+            elif s not in word_dict:
+                word_dict[s] = 1
+            else:
+                word_dict[s] += 1      
+
+
+d = sorted(word_dict.items(), key=lambda x: x[1])
+
+
+
+
+print "Song Title: " + str(Song_Title)
+print "Song Artist: " + str(song_artist.title())
+print 
+print "Word Counts: "
+print "----------------------------------------"
+for x in d[::-1]:
+    print x[0] + ": " + str(x[1])
