@@ -1,0 +1,79 @@
+from bs4 import BeautifulSoup
+import requests
+import string
+
+url = raw_input("Input Album Page URL: ")
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+song = soup.find_all("span",{"class":"song_title"})
+song_artist = soup.find("a",{"class":"artist"}).get_text()
+song_list = []
+
+for x in song[:-3]: 
+    x = x.string
+    x = str(x)
+    x = x.translate(None, string.punctuation)
+    x = x.lower()
+    x = x.replace(" ","-")
+    x += "-lyrics"
+    song_list.append(x)
+
+
+song_artist = str(song_artist)
+
+    
+base_url = "http://genius.com/"
+song_arts = song_artist.translate(None, string.punctuation)
+song_artist1 = song_arts.replace(" ","-")
+base_url += song_artist1
+base_url += "-"
+
+
+
+full_urls = []
+for x in song_list:
+    y = base_url + x
+    full_urls.append(y)
+word_dict = {}  
+
+
+
+song_artist_check = song_artist.lower()  
+
+album_title = soup.find("h1",{"class":"album_name"}).find(text=True).strip()
+album_year = soup.find("span",{"class":"release_year"}).get_text().strip()
+
+
+
+for url in full_urls:
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    count = 0
+    for line in soup.p.get_text().splitlines():
+        for x in line.split():
+                x = x.lower()
+                exclude = set(string.punctuation)
+                s = ''.join(ch for ch in x if ch not in exclude)
+                if s == song_artist_check:
+                    pass
+                elif s == "chorus" or s == "prechorus" or s == "verse" or s == "postchorus":
+                    pass
+                elif s not in word_dict:
+                    word_dict[s] = 1
+                else:
+                    word_dict[s] += 1               
+          
+
+
+d = sorted(word_dict.items(), key=lambda x: x[1])
+
+
+
+print 'Album Title: {} {}'.format(album_title, album_year)
+print "Song Artist: " + str(song_artist.title())
+print 
+print "Word Counts: "
+print "----------------------------------------"
+print 
+for x in d[::-1]:
+    print x[0] + ": " + str(x[1])
